@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Endpoint {
+  id           String   @id @default(cuid())
+  path         String   @unique
+  method       String   // e.g. GET, POST, PUT, DELETE, PATCH
+  responseBody String   @db.Text
+  latencyMs    Int      @default(0)
+  errorRate    Float    @default(0.0) // 0 to 1
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
