@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Save, AlertCircle, Clock } from 'lucide-react';
-import { HttpMethod } from '@/types';
+import { HttpMethod, Endpoint } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-export default function EndpointForm({ onCreated }: { onCreated: () => void }) {
+export default function EndpointForm({ 
+  projectId, 
+  onCreated, 
+  editingEndpoint,
+  onCancelEdit
+}: { 
+  projectId: string; 
+  onCreated: () => void;
+  editingEndpoint?: Endpoint | null;
+  onCancelEdit?: () => void;
+}) {
   const [path, setPath] = useState('/api/test');
   const [method, setMethod] = useState<HttpMethod>('GET');
   const [responseBody, setResponseBody] = useState('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
@@ -19,16 +29,41 @@ export default function EndpointForm({ onCreated }: { onCreated: () => void }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  useEffect(() => {
+    if (editingEndpoint) {
+      setPath(editingEndpoint.path);
+      setMethod(editingEndpoint.method);
+      setResponseBody(editingEndpoint.responseBody);
+      setLatencyMs(editingEndpoint.latencyMs);
+      setErrorRate(editingEndpoint.errorRate * 100);
+    } else {
+      setPath('/api/test');
+      setMethod('GET');
+      setResponseBody('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
+      setLatencyMs(0);
+      setErrorRate(0);
+    }
+  }, [editingEndpoint]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!projectId) {
+      setErrorMsg("Please select or create a project first.");
+      return;
+    }
+    
     setLoading(true);
     setErrorMsg('');
 
     try {
-      const res = await fetch('/api/endpoints', {
-        method: 'POST',
+      const url = editingEndpoint ? `/api/endpoints/${editingEndpoint.id}` : '/api/endpoints';
+      const reqMethod = editingEndpoint ? 'PATCH' : 'POST';
+
+      const res = await fetch(url, {
+        method: reqMethod,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          projectId,
           path,
           method,
           responseBody,
@@ -39,14 +74,15 @@ export default function EndpointForm({ onCreated }: { onCreated: () => void }) {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to create endpoint');
+        throw new Error(data.error || 'Failed to save endpoint');
       }
 
-      setPath('');
-      setResponseBody('{}');
+      setPath('/api/test');
+      setResponseBody('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
       setLatencyMs(0);
       setErrorRate(0);
       onCreated();
+      if (onCancelEdit) onCancelEdit();
     } catch (err: any) {
       setErrorMsg(err.message);
     } finally {
@@ -55,102 +91,93 @@ export default function EndpointForm({ onCreated }: { onCreated: () => void }) {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Play className="w-5 h-5 text-primary" />
-          New Mock Endpoint
-        </CardTitle>
-      </CardHeader>
+    <form id="endpointForm" onSubmit={handleSubmit} className="flex flex-col gap-4 py-4">
+      {errorMsg && (
+        <div className="flex items-center gap-2 text-destructive bg-destructive/10 p-3 rounded-md text-sm">
+          <AlertCircle className="w-4 h-4" />
+          {errorMsg}
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        <div className="w-1/3 space-y-2">
+          <Label>Method</Label>
+          <Select value={method} onValueChange={(v) => { if (v) setMethod(v as HttpMethod) }}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(m => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="flex-1 space-y-2">
+          <Label>Path</Label>
+          <Input 
+            value={path} 
+            onChange={e => setPath(e.target.value)}
+            placeholder="/api/users"
+            className="font-mono text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>JSON Response Body</Label>
+        <Textarea 
+          value={responseBody}
+          onChange={e => setResponseBody(e.target.value)}
+          className="font-mono text-xs min-h-[200px] resize-y"
+          placeholder="{}"
+        />
+      </div>
+
+      <div className="flex gap-4">
+        <div className="flex-1 space-y-2">
+          <Label className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            Latency (ms)
+          </Label>
+          <Input 
+            type="number" 
+            min="0"
+            max="10000"
+            value={latencyMs}
+            onChange={e => setLatencyMs(Number(e.target.value))}
+          />
+        </div>
+
+        <div className="flex-1 space-y-2">
+          <Label className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-muted-foreground" />
+            Error Rate (%)
+          </Label>
+          <Input 
+            type="number" 
+            min="0"
+            max="100"
+            value={errorRate}
+            onChange={e => setErrorRate(Number(e.target.value))}
+          />
+        </div>
+      </div>
       
-      <CardContent>
-        {errorMsg && (
-          <div className="mb-4 p-3 rounded-md bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-2 text-sm">
-            <AlertCircle className="w-4 h-4" /> {errorMsg}
-          </div>
+      <div className="pt-4 flex justify-end gap-2">
+        {editingEndpoint && onCancelEdit && (
+          <Button type="button" variant="outline" onClick={onCancelEdit}>
+            Cancel
+          </Button>
         )}
-
-        <form id="endpointForm" onSubmit={handleSubmit} className="flex flex-col space-y-4">
-          <div className="flex gap-4">
-            <div className="space-y-2" style={{ flex: '0 0 120px' }}>
-              <Label>Method</Label>
-              <Select value={method} onValueChange={(v) => setMethod(v as HttpMethod)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="GET">GET</SelectItem>
-                  <SelectItem value="POST">POST</SelectItem>
-                  <SelectItem value="PUT">PUT</SelectItem>
-                  <SelectItem value="PATCH">PATCH</SelectItem>
-                  <SelectItem value="DELETE">DELETE</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2" style={{ flex: '1' }}>
-              <Label>Path</Label>
-              <Input
-                type="text"
-                required
-                placeholder="/api/v1/users"
-                value={path}
-                onChange={(e) => setPath(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>JSON Response Body</Label>
-            <Textarea
-              rows={6}
-              required
-              spellCheck={false}
-              value={responseBody}
-              onChange={(e) => setResponseBody(e.target.value)}
-              className="font-mono"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <div className="space-y-2 flex-1">
-              <Label className="flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Latency (ms)
-              </Label>
-              <Input
-                type="number"
-                min="0"
-                step="100"
-                value={latencyMs}
-                onChange={(e) => setLatencyMs(Number(e.target.value))}
-              />
-            </div>
-
-            <div className="space-y-2 flex-1">
-              <Label className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" /> Error Rate (%)
-              </Label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={errorRate}
-                onChange={(e) => setErrorRate(Number(e.target.value))}
-              />
-            </div>
-          </div>
-        </form>
-      </CardContent>
-      <CardFooter>
         <Button 
           type="submit" 
-          form="endpointForm"
-          disabled={loading}
-          className="w-full"
+          disabled={loading || !projectId}
         >
-          {loading ? 'Saving...' : <><Save className="w-4 h-4 mr-2" /> Create Endpoint</>}
+          {loading ? 'Saving...' : <><Save className="w-4 h-4 mr-2" /> {editingEndpoint ? 'Update Endpoint' : 'Create Endpoint'}</>}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </form>
   );
 }

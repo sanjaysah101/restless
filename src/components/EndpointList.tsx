@@ -1,7 +1,7 @@
 'use client';
 
 import { Endpoint } from '@/types';
-import { Copy, Trash2, ExternalLink, Activity } from 'lucide-react';
+import { Copy, Trash2, ExternalLink, Activity, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -9,11 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 
 export default function EndpointList({ 
+  projectId,
   endpoints, 
-  onRefresh 
+  onRefresh,
+  onEdit
 }: { 
-  endpoints: Endpoint[], 
-  onRefresh: () => void 
+  projectId: string;
+  endpoints: Endpoint[];
+  onRefresh: () => void;
+  onEdit: (ep: Endpoint) => void;
 }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -33,18 +37,28 @@ export default function EndpointList({
   };
 
   const copyUrl = (path: string, id: string) => {
-    const fullUrl = `${window.location.origin}/mock${path}`;
+    const fullUrl = `${window.location.origin}/mock/${projectId}${path}`;
     navigator.clipboard.writeText(fullUrl);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  if (!projectId) {
+    return (
+      <Card className="text-center py-12 border-dashed">
+        <CardContent className="flex flex-col items-center justify-center text-muted-foreground p-0">
+          <p>Please select a project to view endpoints.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (endpoints.length === 0) {
     return (
-      <Card className="text-center py-12">
+      <Card className="text-center py-12 border-dashed">
         <CardContent className="flex flex-col items-center justify-center text-muted-foreground p-0">
           <Activity className="w-12 h-12 mb-4 opacity-50" />
-          <p>No endpoints mock yet. Create one above to get started!</p>
+          <p>This project has no endpoints. Create one to get started!</p>
         </CardContent>
       </Card>
     );
@@ -64,7 +78,7 @@ export default function EndpointList({
                   {ep.method}
                 </Badge>
                 <span className="font-mono text-lg font-bold">
-                  /mock{ep.path}
+                  /mock/{projectId}{ep.path}
                 </span>
               </div>
               
@@ -97,7 +111,7 @@ export default function EndpointList({
                 {copiedId === ep.id ? <span className="text-green-500 text-xs">Copied</span> : <Copy className="w-4 h-4" />}
               </Button>
               <a 
-                href={`/mock${ep.path}`} 
+                href={`/mock/${projectId}${ep.path}`} 
                 target="_blank" 
                 rel="noreferrer"
                 className={buttonVariants({ variant: "secondary", size: "icon" })}
@@ -105,6 +119,14 @@ export default function EndpointList({
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
+              <Button 
+                variant="secondary"
+                size="icon"
+                onClick={() => onEdit(ep)}
+                title="Edit Endpoint"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
               <Button 
                 variant="destructive"
                 size="icon"

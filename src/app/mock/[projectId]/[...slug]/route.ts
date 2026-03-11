@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { HttpMethod } from '@/types';
 
-async function handleRequest(request: Request, slug: string[], method: HttpMethod) {
+async function handleRequest(request: Request, projectId: string, slug: string[], method: HttpMethod) {
   const path = '/' + slug.join('/');
 
   try {
-    // 1. Find the active endpoint configured by the user
+    // 1. Find the active endpoint configured by the user for this specific project
     const endpoint = await prisma.endpoint.findFirst({
       where: {
+        projectId: projectId,
         path: path,
         method: method,
         active: true,
@@ -17,7 +18,7 @@ async function handleRequest(request: Request, slug: string[], method: HttpMetho
 
     if (!endpoint) {
       return NextResponse.json(
-        { error: 'Mock endpoint not found or inactive.' },
+        { error: 'Mock endpoint not found or inactive in this project.' },
         { status: 404 }
       );
     }
@@ -66,31 +67,36 @@ async function handleRequest(request: Request, slug: string[], method: HttpMetho
       });
     }
   } catch (error) {
-    console.error(`Mockflow Error on [${method}] ${path}:`, error);
+    console.error(`Mockflow Error on [${method}] /mock/${projectId}${path}:`, error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-type ParamsProps = { params: Promise<{ slug: string[] }> };
+type ParamsProps = { params: Promise<{ projectId: string, slug: string[] }> };
 
 export async function GET(req: Request, { params }: ParamsProps) {
-  return handleRequest(req, (await params).slug, 'GET');
+  const resolvedParams = await params;
+  return handleRequest(req, resolvedParams.projectId, resolvedParams.slug, 'GET');
 }
 
 export async function POST(req: Request, { params }: ParamsProps) {
-  return handleRequest(req, (await params).slug, 'POST');
+  const resolvedParams = await params;
+  return handleRequest(req, resolvedParams.projectId, resolvedParams.slug, 'POST');
 }
 
 export async function PUT(req: Request, { params }: ParamsProps) {
-  return handleRequest(req, (await params).slug, 'PUT');
+  const resolvedParams = await params;
+  return handleRequest(req, resolvedParams.projectId, resolvedParams.slug, 'PUT');
 }
 
 export async function PATCH(req: Request, { params }: ParamsProps) {
-  return handleRequest(req, (await params).slug, 'PATCH');
+  const resolvedParams = await params;
+  return handleRequest(req, resolvedParams.projectId, resolvedParams.slug, 'PATCH');
 }
 
 export async function DELETE(req: Request, { params }: ParamsProps) {
-  return handleRequest(req, (await params).slug, 'DELETE');
+  const resolvedParams = await params;
+  return handleRequest(req, resolvedParams.projectId, resolvedParams.slug, 'DELETE');
 }
 
 export async function OPTIONS(req: Request, { params }: ParamsProps) {

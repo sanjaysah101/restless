@@ -1,7 +1,18 @@
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+export interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type CreateProjectInput = Omit<Project, 'id' | 'createdAt' | 'updatedAt'>;
+
 export interface Endpoint {
   id: string;
+  projectId: string;
   path: string;
   method: HttpMethod;
   responseBody: string; // JSON string
