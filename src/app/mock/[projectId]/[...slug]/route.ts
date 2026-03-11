@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { HttpMethod } from '@/types';
 import { faker } from '@faker-js/faker';
+import { publish, InspectorLogEntry } from '@/lib/inspector-bus';
+import { randomUUID } from 'crypto';
 
 // A helper to parse {{faker.module.method()}} templates
 function interpolateFakerTemplates(rawString: string): string {
@@ -36,6 +38,42 @@ function corsHeaders(enableCors: boolean): Record<string, string> {
 
 async function handleRequest(request: Request, projectId: string, slug: string[], method: HttpMethod) {
   const path = '/' + slug.join('/');
+  const startTime = Date.now();
+
+  // Capture query params
+  const url = new URL(request.url);
+  const queryParams: Record<string, string> = {};
+  url.searchParams.forEach((v, k) => { queryParams[k] = v; });
+
+  // Capture request headers
+  const requestHeaders: Record<string, string> = {};
+  request.headers.forEach((v, k) => { requestHeaders[k] = v; });
+
+  // Capture request body (only for non-GET methods)
+  let requestBodyText: string | null = null;
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    try {
+      requestBodyText = await request.clone().text();
+    } catch { /* ignore */ }
+  }
+
+  // Helper to publish a log entry once we have a status code
+  const log = (statusCode: number, responseBody: string | null, endpointId: string | null) => {
+    const entry: InspectorLogEntry = {
+      id: randomUUID(),
+      timestamp: new Date().toISOString(),
+      method,
+      path,
+      statusCode,
+      latencyMs: Date.now() - startTime,
+      requestHeaders,
+      queryParams,
+      requestBody: requestBodyText,
+      responseBody,
+      endpointId,
+    };
+    publish(projectId, entry);
+  };
 
   try {
     // 1. Find the active endpoint configured by the user
@@ -49,6 +87,7 @@ async function handleRequest(request: Request, projectId: string, slug: string[]
     });
 
     if (!endpoint) {
+      log(404, null, null);
       return NextResponse.json(
         { error: 'Mock endpoint not found or inactive in this project.' },
         { status: 404 }
@@ -63,19 +102,19 @@ async function handleRequest(request: Request, projectId: string, slug: string[]
       const expectedTokens = endpoint.customAuthHeader ? endpoint.customAuthHeader.split(',').map((s: string) => s.trim()) : [];
       let authenticated = false;
       
-      // If the user specified a specific expected token, validate exactly
       if (expectedTokens.length > 0) {
          if (authHeader && expectedTokens.includes(authHeader)) {
            authenticated = true;
          }
       } else {
-         // Require *any* authorization header if no specific one is set
          if (authHeader && authHeader.length > 0) {
            authenticated = true;
          }
       }
 
       if (!authenticated) {
+        const body = JSON.stringify({ error: 'Unauthorized. Authentication gated by MockFlow simulation.' });
+        log(401, body, endpoint.id);
         return NextResponse.json(
           { error: 'Unauthorized. Authentication gated by MockFlow simulation.' },
           { status: 401, headers }
@@ -90,10 +129,12 @@ async function handleRequest(request: Request, projectId: string, slug: string[]
 
     // 4. Simulate error rate
     if (endpoint.errorRate > 0) {
-      const randomValue = Math.random(); // 0 to 1
+      const randomValue = Math.random();
       if (randomValue < endpoint.errorRate) {
         const errorCodes = [500, 502, 503, 504];
         const randomErrorStatus = errorCodes[Math.floor(Math.random() * errorCodes.length)];
+        const body = JSON.stringify({ error: `Simulated network error (Rate: ${endpoint.errorRate * 100}%)` });
+        log(randomErrorStatus, body, endpoint.id);
         return NextResponse.json(
           { error: `Simulated network error (Rate: ${endpoint.errorRate * 100}%)` },
           { status: randomErrorStatus, headers }
@@ -104,7 +145,6 @@ async function handleRequest(request: Request, projectId: string, slug: string[]
     // 5. Build Dynamic Response with Faker Templates
     let processedBodyString = endpoint.responseBody;
     
-    // Process templates if the body contains them
     if (processedBodyString && processedBodyString.includes('{{faker.')) {
       processedBodyString = interpolateFakerTemplates(processedBodyString);
     }
@@ -120,12 +160,14 @@ async function handleRequest(request: Request, projectId: string, slug: string[]
         isJson = true;
       }
     } catch {
-      responseBody = processedBodyString; // Not valid JSON, return as text
+      responseBody = processedBodyString;
     }
 
     if (isJson) {
+      log(200, JSON.stringify(responseBody), endpoint.id);
       return NextResponse.json(responseBody, { status: 200, headers });
     } else {
+      log(200, String(responseBody), endpoint.id);
       return new NextResponse(responseBody, {
         status: 200,
         headers: { ...headers, 'Content-Type': 'text/plain' },
@@ -133,6 +175,7 @@ async function handleRequest(request: Request, projectId: string, slug: string[]
     }
   } catch (error) {
     console.error(`Mockflow Error on [${method}] /mock/${projectId}${path}:`, error);
+    log(500, null, null);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

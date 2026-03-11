@@ -4,9 +4,10 @@ import { useState, useEffect, use } from 'react';
 import { Project, Endpoint } from '@/types';
 import EndpointList from '@/components/EndpointList';
 import EndpointForm from '@/components/EndpointForm';
-import { Button, buttonVariants } from "@/components/ui/button";
+import { RequestInspector } from '@/components/RequestInspector';
+import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Folder, Plus, Zap } from "lucide-react";
+import { Folder, Plus, Activity, Layers } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,13 +24,10 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEndpoint, setEditingEndpoint] = useState<Endpoint | null>(null);
+  const [activeTab, setActiveTab] = useState<'endpoints' | 'inspector'>('endpoints');
 
   const fetchProjectDetails = async () => {
     try {
-      const res = await fetch(`/api/projects?id=${projectId}`);
-      // NOTE: Our current API doesn't support fetching a single project by ID easily.
-      // We will fetch all and find it, or we could just use the id from params for the UI until
-      // we need the project name.
       const allRes = await fetch('/api/projects');
       if (allRes.ok) {
         const allProj: Project[] = await allRes.json();
@@ -63,10 +61,6 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
     setEditingEndpoint(null);
   }, [projectId]);
 
-  const handleRefreshEndpoints = () => {
-    fetchEndpoints();
-  };
-
   const handleEditClick = (ep: Endpoint) => {
     setEditingEndpoint(ep);
     setIsDialogOpen(true);
@@ -79,7 +73,7 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
 
   const onFormComplete = () => {
     setIsDialogOpen(false);
-    handleRefreshEndpoints();
+    fetchEndpoints();
   };
 
   if (!project) {
@@ -92,56 +86,84 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
 
   return (
     <>
-      <header className="border-b bg-background/95 backdrop-blur-sm z-10 sticky top-0 px-8 py-5 flex items-center justify-between">
+      {/* Header */}
+      <header className="border-b bg-background/95 backdrop-blur-sm z-10 sticky top-0 px-8 py-4 flex items-center justify-between shrink-0">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight mb-1">{project.name}</h2>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1"><Folder className="w-4 h-4" /> Project details</span>
+          <h2 className="text-xl font-bold tracking-tight">{project.name}</h2>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
+            <span className="flex items-center gap-1"><Folder className="w-3.5 h-3.5" /> Project</span>
             <span>•</span>
-            <Badge variant="outline" className="font-mono bg-muted/50">
-              Base: /mock/{project.id}
+            <Badge variant="outline" className="font-mono text-xs bg-muted/50">
+              /mock/{project.id}
             </Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger className={buttonVariants()} onClick={handleNewClick}>
-              <Plus className="w-4 h-4 mr-2" /> New Endpoint
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-xl">
-              <DialogHeader>
-                <DialogTitle>{editingEndpoint ? 'Edit Mock Endpoint' : 'Create Mock Endpoint'}</DialogTitle>
-                <DialogDescription>
-                  Configure your mock route, HTTP method, and desired latency/error behavior.
-                </DialogDescription>
-              </DialogHeader>
-              <EndpointForm 
-                projectId={project.id}
-                onCreated={onFormComplete}
-                editingEndpoint={editingEndpoint}
-                onCancelEdit={() => setIsDialogOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </header>
-      
-      <div className="flex-1 overflow-auto p-8 bg-muted/10 h-full">
-        <div className="max-w-5xl mx-auto">
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-            </div>
-          ) : (
-            <EndpointList 
-              projectId={project.id}
-              endpoints={endpoints} 
-              onRefresh={handleRefreshEndpoints}
-              onEdit={handleEditClick}
-            />
+        <div className="flex items-center gap-3">
+          {/* Tab switcher */}
+          <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+            <button
+              onClick={() => setActiveTab('endpoints')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${activeTab === 'endpoints' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <Layers className="w-3.5 h-3.5" /> Endpoints
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-1 h-4">{endpoints.length}</Badge>
+            </button>
+            <button
+              onClick={() => setActiveTab('inspector')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${activeTab === 'inspector' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <Activity className="w-3.5 h-3.5" /> Inspector
+              {activeTab === 'inspector' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-1" />}
+            </button>
+          </div>
+
+          {activeTab === 'endpoints' && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger className={buttonVariants({ size: 'sm' })} onClick={handleNewClick}>
+                <Plus className="w-4 h-4 mr-1.5" /> New Endpoint
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{editingEndpoint ? 'Edit Mock Endpoint' : 'Create Mock Endpoint'}</DialogTitle>
+                  <DialogDescription>
+                    Configure your mock route, HTTP method, and desired latency/error behavior.
+                  </DialogDescription>
+                </DialogHeader>
+                <EndpointForm 
+                  projectId={project.id}
+                  onCreated={onFormComplete}
+                  editingEndpoint={editingEndpoint}
+                  onCancelEdit={() => setIsDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
           )}
         </div>
+      </header>
+
+      {/* Tab Content */}
+      <div className="flex-1 overflow-auto h-full">
+        {activeTab === 'endpoints' ? (
+          <div className="p-8 bg-muted/10 h-full">
+            <div className="max-w-5xl mx-auto">
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                </div>
+              ) : (
+                <EndpointList 
+                  projectId={project.id}
+                  endpoints={endpoints} 
+                  onRefresh={fetchEndpoints}
+                  onEdit={handleEditClick}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+          <RequestInspector projectId={project.id} />
+        )}
       </div>
     </>
   );
