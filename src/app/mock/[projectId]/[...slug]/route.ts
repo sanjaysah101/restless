@@ -113,10 +113,10 @@ async function handleRequest(request: Request, projectId: string, slug: string[]
       }
 
       if (!authenticated) {
-        const body = JSON.stringify({ error: 'Unauthorized. Authentication gated by MockFlow simulation.' });
+        const body = JSON.stringify({ error: 'Unauthorized. Authentication gated by RESTless simulation.' });
         log(401, body, endpoint.id);
         return NextResponse.json(
-          { error: 'Unauthorized. Authentication gated by MockFlow simulation.' },
+          { error: 'Unauthorized. Authentication gated by RESTless simulation.' },
           { status: 401, headers }
         );
       }

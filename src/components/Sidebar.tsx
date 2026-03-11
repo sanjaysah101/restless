@@ -62,12 +62,12 @@ export function Sidebar() {
         </div>
         <div>
           <h1 className="text-xl font-black tracking-tight leading-none">
-            MockFlow
+            RESTless
           </h1>
           <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Dashboard</span>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-auto p-4 space-y-6">
         <div className="space-y-3">
           <div className="flex items-center justify-between px-2">
@@ -79,7 +79,7 @@ export function Sidebar() {
             {projects.map(proj => {
               const isActive = pathname.startsWith(`/projects/${proj.id}`);
               return (
-                <Link 
+                <Link
                   href={`/projects/${proj.id}`}
                   key={proj.id}
                   className={buttonVariants({
@@ -101,8 +101,8 @@ export function Sidebar() {
 
       <div className="p-4 border-t bg-background/50">
         <form onSubmit={handleCreateProject} className="flex gap-2">
-          <Input 
-            placeholder="New project name" 
+          <Input
+            placeholder="New project name"
             value={newProjectName}
             onChange={e => setNewProjectName(e.target.value)}
             className="h-8 text-sm bg-background"

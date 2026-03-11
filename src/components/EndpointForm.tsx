@@ -11,20 +11,20 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AIGenerateModal } from "@/components/AIGenerateModal";
 
-export default function EndpointForm({ 
-  projectId, 
-  onCreated, 
+export default function EndpointForm({
+  projectId,
+  onCreated,
   editingEndpoint,
   onCancelEdit
-}: { 
-  projectId: string; 
+}: {
+  projectId: string;
   onCreated: () => void;
   editingEndpoint?: Endpoint | null;
   onCancelEdit?: () => void;
 }) {
   const [path, setPath] = useState('/api/test');
   const [method, setMethod] = useState<HttpMethod>('GET');
-  const [responseBody, setResponseBody] = useState('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
+  const [responseBody, setResponseBody] = useState('{\n  "status": "success",\n  "message": "Hello from RESTless!"\n}');
   const [latencyMs, setLatencyMs] = useState(0);
   const [errorRate, setErrorRate] = useState(0);
   const [requireAuth, setRequireAuth] = useState(false);
@@ -47,7 +47,7 @@ export default function EndpointForm({
     } else {
       setPath('/api/test');
       setMethod('GET');
-      setResponseBody('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
+      setResponseBody('{\n  "status": "success",\n  "message": "Hello from RESTless!"\n}');
       setLatencyMs(0);
       setErrorRate(0);
       setRequireAuth(false);
@@ -62,7 +62,7 @@ export default function EndpointForm({
       setErrorMsg("Please select or create a project first.");
       return;
     }
-    
+
     setLoading(true);
     setErrorMsg('');
 
@@ -92,7 +92,7 @@ export default function EndpointForm({
       }
 
       setPath('/api/test');
-      setResponseBody('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
+      setResponseBody('{\n  "status": "success",\n  "message": "Hello from RESTless!"\n}');
       setLatencyMs(0);
       setErrorRate(0);
       setRequireAuth(false);
@@ -130,11 +130,11 @@ export default function EndpointForm({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="flex-1 space-y-2">
           <Label>Path</Label>
-          <Input 
-            value={path} 
+          <Input
+            value={path}
             onChange={e => setPath(e.target.value)}
             placeholder="/api/users"
             className="font-mono text-sm"
@@ -162,7 +162,7 @@ export default function EndpointForm({
 
       <div className="space-y-2">
         <Label>JSON Response Body</Label>
-        <Textarea 
+        <Textarea
           value={responseBody}
           onChange={e => setResponseBody(e.target.value)}
           className="font-mono text-xs min-h-[200px] resize-y"
@@ -179,8 +179,8 @@ export default function EndpointForm({
             <Clock className="w-4 h-4 text-muted-foreground" />
             Latency (ms)
           </Label>
-          <Input 
-            type="number" 
+          <Input
+            type="number"
             min="0"
             max="10000"
             value={latencyMs}
@@ -193,8 +193,8 @@ export default function EndpointForm({
             <AlertCircle className="w-4 h-4 text-muted-foreground" />
             Error Rate (%)
           </Label>
-          <Input 
-            type="number" 
+          <Input
+            type="number"
             min="0"
             max="100"
             value={errorRate}
@@ -202,10 +202,10 @@ export default function EndpointForm({
           />
         </div>
       </div>
-      
+
       <div className="border-t pt-4 space-y-4">
         <h4 className="text-sm font-semibold flex items-center gap-2">Advanced Simulation</h4>
-        
+
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label>Enable CORS Wildcards</Label>
@@ -223,16 +223,16 @@ export default function EndpointForm({
         </div>
 
         {requireAuth && (
-           <div className="pt-2">
-             <Label>Expected Authorization Header</Label>
-             <Input 
-               placeholder="Bearer custom_token_123"
-               value={customAuthHeader}
-               onChange={e => setCustomAuthHeader(e.target.value)}
-               className="mt-1 font-mono text-xs"
-             />
-             <p className="text-[11px] text-muted-foreground mt-1">Leave empty to accept any non-empty authorization header.</p>
-           </div>
+          <div className="pt-2">
+            <Label>Expected Authorization Header</Label>
+            <Input
+              placeholder="Bearer custom_token_123"
+              value={customAuthHeader}
+              onChange={e => setCustomAuthHeader(e.target.value)}
+              className="mt-1 font-mono text-xs"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">Leave empty to accept any non-empty authorization header.</p>
+          </div>
         )}
       </div>
 
@@ -243,8 +243,8 @@ export default function EndpointForm({
             Cancel
           </Button>
         )}
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={loading || !projectId}
         >
           {loading ? 'Saving...' : <><Save className="w-4 h-4 mr-2" /> {editingEndpoint ? 'Update Endpoint' : 'Create Endpoint'}</>}
