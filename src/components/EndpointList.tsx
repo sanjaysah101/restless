@@ -1,8 +1,12 @@
 'use client';
 
 import { Endpoint } from '@/types';
-import { Copy, Trash2, ExternalLink, Activity, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Copy, Trash2, ExternalLink, Activity } from 'lucide-react';
 import { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 export default function EndpointList({ 
   endpoints, 
@@ -37,32 +41,34 @@ export default function EndpointList({
 
   if (endpoints.length === 0) {
     return (
-      <div className="glass-card text-center text-muted py-12">
-        <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-        <p>No endpoints mock yet. Create one above to get started!</p>
-      </div>
+      <Card className="text-center py-12">
+        <CardContent className="flex flex-col items-center justify-center text-muted-foreground p-0">
+          <Activity className="w-12 h-12 mb-4 opacity-50" />
+          <p>No endpoints mock yet. Create one above to get started!</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
       {endpoints.map((ep) => (
-        <div key={ep.id} className="glass-card flex flex-col gap-3 relative overflow-hidden">
+        <Card key={ep.id} className="relative overflow-hidden">
           {/* Status Indicator Bar */}
-          <div className={`absolute top-0 left-0 w-1 h-full ${ep.active ? 'bg-green-500' : 'bg-gray-500'}`} />
+          <div className={`absolute top-0 left-0 w-1 h-full ${ep.active ? 'bg-green-500' : 'bg-muted'}`} />
           
-          <div className="flex justify-between items-start pl-2">
+          <CardContent className="p-4 flex justify-between items-start ml-2">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <span className={`px-2 py-1 rounded text-xs font-bold leading-none ${getMethodColor(ep.method)}`}>
+                <Badge variant="outline" className={`font-bold ${getMethodColor(ep.method)}`}>
                   {ep.method}
-                </span>
-                <span className="font-mono text-lg font-bold text-accent">
+                </Badge>
+                <span className="font-mono text-lg font-bold">
                   /mock{ep.path}
                 </span>
               </div>
               
-              <div className="flex gap-4 text-sm text-muted mt-2">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-3">
                 <span className="flex items-center gap-1">
                   Delay: {ep.latencyMs}ms
                 </span>
@@ -71,43 +77,45 @@ export default function EndpointList({
                   Error Rate: {ep.errorRate * 100}%
                 </span>
                 <span>•</span>
-                <button 
-                  onClick={() => handleToggleActive(ep.id, ep.active)}
-                  className="flex items-center gap-1 hover:text-white transition-colors"
-                >
-                  {ep.active ? <ToggleRight className="text-green-500 w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
-                  {ep.active ? 'Active' : 'Inactive'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    checked={ep.active} 
+                    onCheckedChange={() => handleToggleActive(ep.id, ep.active)} 
+                  />
+                  <span>{ep.active ? 'Active' : 'Inactive'}</span>
+                </div>
               </div>
             </div>
             
             <div className="flex gap-2">
-              <button 
-                className="btn btn-secondary !p-2"
+              <Button 
+                variant="secondary"
+                size="icon"
                 title="Copy URL"
                 onClick={() => copyUrl(ep.path, ep.id)}
               >
-                {copiedId === ep.id ? <span className="text-green-400 text-sm">Copied!</span> : <Copy className="w-4 h-4" />}
-              </button>
+                {copiedId === ep.id ? <span className="text-green-500 text-xs">Copied</span> : <Copy className="w-4 h-4" />}
+              </Button>
               <a 
                 href={`/mock${ep.path}`} 
                 target="_blank" 
                 rel="noreferrer"
-                className="btn btn-secondary !p-2"
+                className={buttonVariants({ variant: "secondary", size: "icon" })}
                 title="Open in new tab"
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
-              <button 
-                className="btn btn-secondary !p-2 !text-red-400 hover:!bg-red-500/10 hover:!text-red-500 hover:!border-red-500/30"
+              <Button 
+                variant="destructive"
+                size="icon"
                 onClick={() => handleDelete(ep.id)}
                 title="Delete"
               >
                 <Trash2 className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
@@ -115,11 +123,11 @@ export default function EndpointList({
 
 function getMethodColor(method: string) {
   switch (method) {
-    case 'GET': return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-    case 'POST': return 'bg-green-500/20 text-green-400 border border-green-500/30';
-    case 'PUT': return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
-    case 'DELETE': return 'bg-red-500/20 text-red-400 border border-red-500/30';
-    case 'PATCH': return 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
-    default: return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+    case 'GET': return 'text-blue-500 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950';
+    case 'POST': return 'text-green-500 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950';
+    case 'PUT': return 'text-yellow-500 border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950';
+    case 'DELETE': return 'text-red-500 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950';
+    case 'PATCH': return 'text-purple-500 border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950';
+    default: return 'text-gray-500 border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950';
   }
 }
