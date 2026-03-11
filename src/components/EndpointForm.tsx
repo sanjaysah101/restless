@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Play, Save, AlertCircle, Clock } from 'lucide-react';
+import { Save, AlertCircle, Clock, Sparkles } from 'lucide-react';
 import { HttpMethod, Endpoint } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { AIGenerateModal } from "@/components/AIGenerateModal";
 
 export default function EndpointForm({ 
   projectId, 
@@ -32,6 +32,7 @@ export default function EndpointForm({
   const [enableCors, setEnableCors] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   useEffect(() => {
     if (editingEndpoint) {
@@ -141,6 +142,24 @@ export default function EndpointForm({
         </div>
       </div>
 
+      {/* AI Context Window button */}
+      <div className="flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/5 px-4 py-3">
+        <Sparkles className="w-4 h-4 text-primary shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-primary leading-tight">Generate with AI</p>
+          <p className="text-[11px] text-muted-foreground">Let Gemini write the JSON payload for you</p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="shrink-0 border-primary/30 text-primary hover:bg-primary/10 gap-1.5"
+          onClick={() => setAiModalOpen(true)}
+        >
+          <Sparkles className="w-3.5 h-3.5" /> Open AI
+        </Button>
+      </div>
+
       <div className="space-y-2">
         <Label>JSON Response Body</Label>
         <Textarea 
@@ -150,7 +169,7 @@ export default function EndpointForm({
           placeholder="{}"
         />
         <p className="text-[11px] text-muted-foreground font-mono">
-          Tip: You can use Faker.js templates like <code>{`{{faker.string.uuid()}}`}</code> or <code>{`{{faker.person.fullName()}}`}</code> for dynamic randomized data!
+          Tip: Use Faker.js templates like <code>{`{{faker.string.uuid()}}`}</code> or <code>{`{{faker.person.fullName()}}`}</code> for live random data.
         </p>
       </div>
 
@@ -231,6 +250,13 @@ export default function EndpointForm({
           {loading ? 'Saving...' : <><Save className="w-4 h-4 mr-2" /> {editingEndpoint ? 'Update Endpoint' : 'Create Endpoint'}</>}
         </Button>
       </div>
+
+      {/* AI Context Window Modal (portal-style, rendered outside the form flow) */}
+      <AIGenerateModal
+        open={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        onApply={(json) => setResponseBody(json)}
+      />
     </form>
   );
 }
