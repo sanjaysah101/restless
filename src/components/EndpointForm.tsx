@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 export default function EndpointForm({ 
   projectId, 
@@ -26,6 +27,9 @@ export default function EndpointForm({
   const [responseBody, setResponseBody] = useState('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
   const [latencyMs, setLatencyMs] = useState(0);
   const [errorRate, setErrorRate] = useState(0);
+  const [requireAuth, setRequireAuth] = useState(false);
+  const [customAuthHeader, setCustomAuthHeader] = useState('');
+  const [enableCors, setEnableCors] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -36,12 +40,18 @@ export default function EndpointForm({
       setResponseBody(editingEndpoint.responseBody);
       setLatencyMs(editingEndpoint.latencyMs);
       setErrorRate(editingEndpoint.errorRate * 100);
+      setRequireAuth(editingEndpoint.requireAuth || false);
+      setCustomAuthHeader(editingEndpoint.customAuthHeader || '');
+      setEnableCors(editingEndpoint.enableCors ?? true);
     } else {
       setPath('/api/test');
       setMethod('GET');
       setResponseBody('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
       setLatencyMs(0);
       setErrorRate(0);
+      setRequireAuth(false);
+      setCustomAuthHeader('');
+      setEnableCors(true);
     }
   }, [editingEndpoint]);
 
@@ -69,6 +79,9 @@ export default function EndpointForm({
           responseBody,
           latencyMs,
           errorRate: errorRate / 100, // convert percentage to 0-1
+          requireAuth,
+          customAuthHeader,
+          enableCors,
         }),
       });
 
@@ -81,6 +94,9 @@ export default function EndpointForm({
       setResponseBody('{\n  "status": "success",\n  "message": "Hello from MockFlow!"\n}');
       setLatencyMs(0);
       setErrorRate(0);
+      setRequireAuth(false);
+      setCustomAuthHeader('');
+      setEnableCors(true);
       onCreated();
       if (onCancelEdit) onCancelEdit();
     } catch (err: any) {
@@ -133,6 +149,9 @@ export default function EndpointForm({
           className="font-mono text-xs min-h-[200px] resize-y"
           placeholder="{}"
         />
+        <p className="text-[11px] text-muted-foreground font-mono">
+          Tip: You can use Faker.js templates like <code>{`{{faker.string.uuid()}}`}</code> or <code>{`{{faker.person.fullName()}}`}</code> for dynamic randomized data!
+        </p>
       </div>
 
       <div className="flex gap-4">
@@ -165,7 +184,41 @@ export default function EndpointForm({
         </div>
       </div>
       
+      <div className="border-t pt-4 space-y-4">
+        <h4 className="text-sm font-semibold flex items-center gap-2">Advanced Simulation</h4>
+        
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label>Enable CORS Wildcards</Label>
+            <p className="text-xs text-muted-foreground">Automatically sends Access-Control-Allow headers.</p>
+          </div>
+          <Switch checked={enableCors} onCheckedChange={setEnableCors} />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label>Require Authentication</Label>
+            <p className="text-xs text-muted-foreground">Mock endpoint will return 401 if unauthorized.</p>
+          </div>
+          <Switch checked={requireAuth} onCheckedChange={setRequireAuth} />
+        </div>
+
+        {requireAuth && (
+           <div className="pt-2">
+             <Label>Expected Authorization Header</Label>
+             <Input 
+               placeholder="Bearer custom_token_123"
+               value={customAuthHeader}
+               onChange={e => setCustomAuthHeader(e.target.value)}
+               className="mt-1 font-mono text-xs"
+             />
+             <p className="text-[11px] text-muted-foreground mt-1">Leave empty to accept any non-empty authorization header.</p>
+           </div>
+        )}
+      </div>
+
       <div className="pt-4 flex justify-end gap-2">
+
         {editingEndpoint && onCancelEdit && (
           <Button type="button" variant="outline" onClick={onCancelEdit}>
             Cancel
