@@ -132,8 +132,8 @@ Share this with teammates, your CI pipeline, or your Figma prototype.
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/your-username/api-mockflow.git
-cd api-mockflow
+git clone https://github.com/sanjaysah101/restless.git
+cd restless
 npm install
 ```
 
@@ -147,7 +147,7 @@ Edit `.env`:
 
 ```env
 # PostgreSQL connection string
-DATABASE_URL="postgresql://user:password@host:5432/mockflow"
+DATABASE_URL="postgresql://user:password@host:5432/restless"
 
 # Google Gemini AI (for payload generation)
 GEMINI_API_KEY="your_gemini_api_key_here"
