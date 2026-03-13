@@ -1,16 +1,28 @@
-import { Sidebar } from "@/components/Sidebar";
+import { AppSidebar } from "@/components/Sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-background text-foreground selection:bg-primary/20">
-      <Sidebar />
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {children}
-      </main>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="flex flex-col min-h-svh overflow-hidden">
+        {/* Mobile-only top bar with sidebar trigger */}
+        <div className="flex items-center h-12 px-4 border-b bg-background/95 backdrop-blur-sm md:hidden shrink-0">
+          <SidebarTrigger />
+          <span className="ml-3 text-sm font-semibold text-foreground">RESTless</span>
+        </div>
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
