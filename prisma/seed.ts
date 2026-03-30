@@ -526,6 +526,529 @@ async function main() {
     },
   });
 
+    // ─── Project 5: Disaster Relief API ──────────────────────────────────────────
+  const disasterRelief = await prisma.project.create({
+    data: {
+      name: "Disaster Relief API",
+      description:
+        "Mock backend for disaster relief coordination — incidents, resources, volunteers, and shelters.",
+      endpoints: {
+        create: [
+          {
+            path: "/incidents",
+            method: "GET",
+            latencyMs: 120,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                data: [
+                  {
+                    id: "inc_001",
+                    type: "Flood",
+                    severity: "critical",
+                    location: { city: "Sylhet", country: "Bangladesh", lat: 24.8949, lon: 91.8687 },
+                    affectedCount: 12500,
+                    status: "active",
+                    reportedAt: "2025-03-28T06:00:00Z",
+                  },
+                  {
+                    id: "inc_002",
+                    type: "Wildfire",
+                    severity: "high",
+                    location: { city: "Kelowna", country: "Canada", lat: 49.888, lon: -119.496 },
+                    affectedCount: 3200,
+                    status: "contained",
+                    reportedAt: "2025-03-27T14:30:00Z",
+                  },
+                  {
+                    id: "inc_003",
+                    type: "Earthquake",
+                    severity: "moderate",
+                    location: { city: "Kathmandu", country: "Nepal", lat: 27.7172, lon: 85.3240 },
+                    affectedCount: 6800,
+                    status: "active",
+                    reportedAt: "2025-03-29T09:15:00Z",
+                  },
+                ],
+                total: 3,
+                activeCount: 2,
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/incidents/:id/resources",
+            method: "GET",
+            latencyMs: 90,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                incidentId: "inc_001",
+                resources: [
+                  { type: "Water Purification Tablets", quantity: 50000, unit: "tablets", status: "deployed" },
+                  { type: "Emergency Food Packs", quantity: 8000, unit: "packs", status: "in-transit" },
+                  { type: "Medical Kits", quantity: 500, unit: "kits", status: "deployed" },
+                  { type: "Rescue Boats", quantity: 24, unit: "boats", status: "deployed" },
+                  { type: "Temporary Shelters", quantity: 300, unit: "units", status: "pending" },
+                ],
+                volunteerTeams: [
+                  { id: "team_01", name: "Alpha Medical Team", skills: ["first-aid", "triage"], members: 12, available: true },
+                  { id: "team_02", name: "Water Rescue Unit", skills: ["diving", "boat-operation"], members: 8, available: false },
+                ],
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/shelters",
+            method: "GET",
+            latencyMs: 80,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                shelters: [
+                  {
+                    id: "shlt_001",
+                    name: "Sylhet Government High School",
+                    address: "Sylhet, Bangladesh",
+                    capacity: 800,
+                    currentOccupancy: 673,
+                    amenities: ["food", "water", "medical", "electricity"],
+                    contactPhone: "+880-821-123456",
+                  },
+                  {
+                    id: "shlt_002",
+                    name: "Community Sports Complex",
+                    address: "Sunamganj, Bangladesh",
+                    capacity: 1200,
+                    currentOccupancy: 945,
+                    amenities: ["food", "water", "medical"],
+                    contactPhone: "+880-821-654321",
+                  },
+                ],
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/volunteers",
+            method: "POST",
+            latencyMs: 200,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                success: true,
+                volunteerId: "vol_9842",
+                message: "Registration confirmed. You'll receive deployment instructions within 2 hours.",
+                nextSteps: [
+                  "Check your email for onboarding pack",
+                  "Report to nearest coordination centre",
+                  "Bring valid ID and any listed equipment",
+                ],
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      },
+    },
+  });
+
+  // ─── Project 6: Climate Monitor API ──────────────────────────────────────────
+  const climateApi = await prisma.project.create({
+    data: {
+      name: "Climate Monitor API",
+      description:
+        "Real-time climate sensor data, emissions tracking, and environmental alerts for sustainability apps.",
+      endpoints: {
+        create: [
+          {
+            path: "/sensors/stations",
+            method: "GET",
+            latencyMs: 100,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                stations: [
+                  {
+                    stationId: "stn_001",
+                    name: "Central Park Monitoring Station",
+                    location: { city: "New York", country: "US", lat: 40.7851, lon: -73.9683 },
+                    readings: {
+                      co2Ppm: 418.6,
+                      tempC: 12.3,
+                      humidity: 65,
+                      pm25: 11.2,
+                      aqi: 42,
+                    },
+                    alertLevel: "good",
+                    lastUpdated: "2025-03-30T10:00:00Z",
+                  },
+                  {
+                    stationId: "stn_002",
+                    name: "Delhi Air Quality Hub",
+                    location: { city: "New Delhi", country: "IN", lat: 28.6139, lon: 77.209 },
+                    readings: {
+                      co2Ppm: 445.2,
+                      tempC: 28.7,
+                      humidity: 72,
+                      pm25: 98.4,
+                      aqi: 168,
+                    },
+                    alertLevel: "unhealthy",
+                    lastUpdated: "2025-03-30T10:00:00Z",
+                  },
+                ],
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/emissions/trends",
+            method: "GET",
+            latencyMs: 150,
+            errorRate: 0.05,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                region: "Global",
+                period: "2024",
+                unit: "GtCO2e",
+                data: [
+                  { month: "2024-01", co2: 3.82, methane: 0.64, n2o: 0.21 },
+                  { month: "2024-02", co2: 3.71, methane: 0.62, n2o: 0.20 },
+                  { month: "2024-03", co2: 3.88, methane: 0.65, n2o: 0.22 },
+                  { month: "2024-04", co2: 3.79, methane: 0.63, n2o: 0.21 },
+                ],
+                yearOnYearChange: -0.8,
+                targetFor2030: 2.1,
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/alerts",
+            method: "GET",
+            latencyMs: 60,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                alerts: [
+                  {
+                    id: "alrt_001",
+                    type: "AirQuality",
+                    severity: "high",
+                    region: "New Delhi, India",
+                    message: "PM2.5 levels at 98.4 μg/m³ — 4× safe limit. Avoid outdoor activity.",
+                    issuedAt: "2025-03-30T08:00:00Z",
+                    expiresAt: "2025-03-31T08:00:00Z",
+                    recommendations: ["Wear N95 mask outdoors", "Keep windows closed", "Use air purifier indoors"],
+                  },
+                  {
+                    id: "alrt_002",
+                    type: "HeatWave",
+                    severity: "moderate",
+                    region: "Rajasthan, India",
+                    message: "Temperatures expected to reach 42°C. Hydrate frequently.",
+                    issuedAt: "2025-03-30T06:00:00Z",
+                    expiresAt: "2025-04-01T18:00:00Z",
+                    recommendations: ["Stay indoors 12–4PM", "Drink 3L+ water daily"],
+                  },
+                ],
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      },
+    },
+  });
+
+  // ─── Project 7: Open Health API ───────────────────────────────────────────────
+  const healthApi = await prisma.project.create({
+    data: {
+      name: "Open Health API",
+      description:
+        "Mock healthcare data endpoints — patients, appointments, medications, and risk assessments.",
+      endpoints: {
+        create: [
+          {
+            path: "/patients",
+            method: "GET",
+            latencyMs: 130,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: true,
+            customAuthHeader: "Bearer mock_health_token_xyz",
+            responseBody: JSON.stringify(
+              {
+                patients: [
+                  {
+                    id: "pat_001",
+                    name: "Arjun Sharma",
+                    age: 54,
+                    gender: "male",
+                    bloodType: "O+",
+                    condition: "Type 2 Diabetes",
+                    riskLevel: "high",
+                    medications: [
+                      { name: "Metformin", dosage: "500mg", frequency: "twice daily" },
+                      { name: "Linagliptin", dosage: "5mg", frequency: "once daily" },
+                    ],
+                    nextAppointment: { date: "2025-04-05", doctor: "Dr. Priya Nair", type: "Follow-up" },
+                  },
+                  {
+                    id: "pat_002",
+                    name: "Grace O'Sullivan",
+                    age: 38,
+                    gender: "female",
+                    bloodType: "A-",
+                    condition: "Hypertension",
+                    riskLevel: "moderate",
+                    medications: [
+                      { name: "Amlodipine", dosage: "5mg", frequency: "once daily" },
+                    ],
+                    nextAppointment: { date: "2025-04-12", doctor: "Dr. Chen Wei", type: "Routine Check" },
+                  },
+                ],
+                total: 2,
+                page: 1,
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/appointments",
+            method: "GET",
+            latencyMs: 80,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: true,
+            customAuthHeader: "Bearer mock_health_token_xyz",
+            responseBody: JSON.stringify(
+              {
+                appointments: [
+                  { id: "apt_001", patientId: "pat_001", doctor: "Dr. Priya Nair", specialty: "Endocrinology", date: "2025-04-05", time: "10:30", type: "Follow-up", status: "confirmed" },
+                  { id: "apt_002", patientId: "pat_002", doctor: "Dr. Chen Wei", specialty: "Cardiology", date: "2025-04-12", time: "14:00", type: "Routine Check", status: "confirmed" },
+                  { id: "apt_003", patientId: "pat_001", doctor: "Dr. Sam Patel", specialty: "Dietician", date: "2025-04-20", time: "11:00", type: "Nutrition Plan", status: "pending" },
+                ],
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/medications/:id",
+            method: "GET",
+            latencyMs: 60,
+            errorRate: 0.02,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                id: "med_001",
+                name: "Metformin",
+                genericName: "Metformin Hydrochloride",
+                class: "Biguanide",
+                usedFor: ["Type 2 Diabetes", "PCOS"],
+                dosageForms: ["500mg tablet", "850mg tablet", "1000mg tablet"],
+                sideEffects: ["Nausea", "Diarrhea", "Stomach upset"],
+                interactions: ["Alcohol", "Iodine contrast dye", "Topiramate"],
+                stockDays: 28,
+                requiresPrescription: true,
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      },
+    },
+  });
+
+  // ─── Project 8: Food Bank Network API ────────────────────────────────────────
+  const foodBankApi = await prisma.project.create({
+    data: {
+      name: "Food Bank Network API",
+      description:
+        "Mock endpoints for a food bank coordination platform — locations, inventory, and donation tracking.",
+      endpoints: {
+        create: [
+          {
+            path: "/locations",
+            method: "GET",
+            latencyMs: 100,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                locations: [
+                  {
+                    id: "loc_001",
+                    name: "East Side Community Food Hub",
+                    address: "142 Maple St, Toronto, ON",
+                    coordinates: { lat: 43.6532, lon: -79.3832 },
+                    operatingHours: "Mon–Fri 9am–5pm, Sat 10am–2pm",
+                    phone: "+1-416-555-0101",
+                    weeklyCapacity: 500,
+                    currentCapacity: 412,
+                  },
+                  {
+                    id: "loc_002",
+                    name: "Westview Food Pantry",
+                    address: "78 Oak Avenue, Vancouver, BC",
+                    coordinates: { lat: 49.2827, lon: -123.1207 },
+                    operatingHours: "Tue & Thu 10am–4pm",
+                    phone: "+1-604-555-0198",
+                    weeklyCapacity: 300,
+                    currentCapacity: 287,
+                  },
+                ],
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/locations/:id/inventory",
+            method: "GET",
+            latencyMs: 90,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                locationId: "loc_001",
+                lastUpdated: "2025-03-30T08:00:00Z",
+                inventory: [
+                  {
+                    category: "Grains & Cereals",
+                    items: [
+                      { name: "Brown Rice", quantity: 420, unit: "kg", expiryDate: "2026-06-01", status: "available" },
+                      { name: "Rolled Oats", quantity: 180, unit: "kg", expiryDate: "2025-12-01", status: "available" },
+                    ],
+                  },
+                  {
+                    category: "Canned Goods",
+                    items: [
+                      { name: "Canned Tomatoes", quantity: 1200, unit: "cans", expiryDate: "2026-03-01", status: "available" },
+                      { name: "Chickpeas (400g)", quantity: 850, unit: "cans", expiryDate: "2026-01-01", status: "low" },
+                    ],
+                  },
+                  {
+                    category: "Fresh Produce",
+                    items: [
+                      { name: "Cabbage", quantity: 75, unit: "heads", expiryDate: "2025-04-05", status: "critical" },
+                      { name: "Carrots", quantity: 60, unit: "kg", expiryDate: "2025-04-08", status: "available" },
+                    ],
+                  },
+                ],
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/donations",
+            method: "POST",
+            latencyMs: 180,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                success: true,
+                donationId: "don_7823",
+                message: "Thank you! Your donation will feed 12 families this week.",
+                impact: {
+                  mealsProvided: 48,
+                  familiesHelped: 12,
+                  co2SavedKg: 3.4,
+                },
+                receiptUrl: "https://example.com/receipts/don_7823.pdf",
+              },
+              null,
+              2
+            ),
+          },
+          {
+            path: "/donations/stats",
+            method: "GET",
+            latencyMs: 70,
+            errorRate: 0.0,
+            active: true,
+            enableCors: true,
+            requireAuth: false,
+            responseBody: JSON.stringify(
+              {
+                stats: {
+                  thisMonth: {
+                    totalDonations: 8420,
+                    totalDonorsCount: 312,
+                    totalFoodKg: 3850,
+                    mealsProvided: 9200,
+                    familiesHelped: 1840,
+                  },
+                  allTime: {
+                    totalDonations: 142600,
+                    totalFoodKg: 68000,
+                    mealsProvided: 185000,
+                    familiesHelped: 37000,
+                  },
+                },
+                topCategories: ["Grains", "Canned Goods", "Fresh Produce", "Dairy"],
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      },
+    },
+  });
+
+  console.log(`✅ Seeded 4 social-good projects:`);
+  console.log(`   🆘 ${disasterRelief.name} — 4 endpoints`);
+  console.log(`   🌿 ${climateApi.name} — 3 endpoints`);
+  console.log(`   🏥 ${healthApi.name} — 3 endpoints`);
+  console.log(`   🍞 ${foodBankApi.name} — 4 endpoints`);
+  console.log("🎉 Seed complete!");
+  
   console.log(`✅ Seeded 4 projects:`);
   console.log(`   📦 ${ecommerce.name} — 4 endpoints`);
   console.log(`   🔐 ${authService.name} — 5 endpoints`);

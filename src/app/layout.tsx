@@ -12,8 +12,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RESTless",
-  description: "Visual API mocking tool for frontend developers",
+  title: "RESTless — AI-Powered API Mocking for Social Good",
+  description:
+    "Instantly generate realistic mock APIs with Google Gemini AI, Faker.js templates, network simulation, and real-time request inspection. Built for developers creating impactful apps — no backend required.",
+  keywords: [
+    "API mocking", "mock API", "Gemini AI", "Faker.js", "social good",
+    "developer tools", "SaaS", "hackathon", "Next.js",
+  ],
+  openGraph: {
+    title: "RESTless — AI-Powered API Mocking for Social Good",
+    description:
+      "Generate realistic mock APIs with Google Gemini AI. Built for developers building apps for social good.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

@@ -30,6 +30,30 @@ const EXAMPLES = [
     label: '🌍 REST Countries',
     prompt: '5 countries with name, code, capital, population, currency, flag emoji, and languages array',
   },
+  {
+    label: '🌍 Climate Data',
+    prompt: '5 climate change indicators with region, co2Emissions, temperatureAnomaly, seaLevelRise, and recordedAt',
+  },
+  {
+    label: '🏥 Healthcare APIs',
+    prompt: 'A paginated list of medical facilities with id, name, type (hospital|clinic), capacity, availableBeds, and emergencyContact',
+  },
+  {
+    label: '💰 Financial Aid',
+    prompt: 'A micro-loan webhook payload with applicantId, amount, status, impactCategory (education|agriculture), and disbursementDate',
+  },
+  {
+    label: '🌾 Agriculture Yield',
+    prompt: '5 crop yield records with farmId, cropType, expectedYieldKg, soilMoistureLevel, and recommendedFertilizer',
+  },
+  {
+    label: '🚨 Disaster Relief',
+    prompt: '8 active disaster relief operations with incidentId, severity, affectedCount, requiredResources array, and status',
+  },
+  {
+    label: '📚 Edu Tech',
+    prompt: 'A paginated curriculum response with courseId, subject, targetAge, modules array, and accessibilityFeatures',
+  },
 ];
 
 interface Message {
@@ -48,7 +72,6 @@ export function AIGenerateModal({ open, onClose, onApply }: AIGenerateModalProps
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [lastJsonResult, setLastJsonResult] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,10 +103,10 @@ export function AIGenerateModal({ open, onClose, onApply }: AIGenerateModalProps
       if (!res.ok) throw new Error(data.error || 'AI generation failed');
 
       const pretty = JSON.stringify(JSON.parse(data.result), null, 2);
-      setLastJsonResult(pretty);
       setMessages(prev => [...prev, { role: 'assistant', content: pretty }]);
-    } catch (err: any) {
-      setMessages(prev => [...prev, { role: 'assistant', content: err.message, error: true }]);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'AI generation failed';
+      setMessages(prev => [...prev, { role: 'assistant', content: errorMessage, error: true }]);
     } finally {
       setLoading(false);
     }
